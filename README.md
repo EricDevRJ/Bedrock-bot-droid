@@ -1,1 +1,1 @@
-# Minecraft-bot-24h-termux-android-via-ubuntu
+# MinecraftBedrock-bot-24h-termux-android-via-ubuntu
