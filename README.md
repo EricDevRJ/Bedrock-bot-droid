@@ -84,7 +84,7 @@ Crie o arquivo index.js:
 ````bash
 nano index.js
 ````
-<details 📄 Clique para ver o código JavaScript completo, coloque no index.js>
+<details> 📄 Clique para ver o código JavaScript completo, coloque no index.js
 <sumary>Copie e cole o conteúdo completo abaixo (para colar no Termux use Ctrl+Shift+V)</sumary>
    
 ````index.js
