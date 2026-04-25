@@ -267,9 +267,8 @@ Ainda na pasta /root/meu-bot, crie o arquivo da interface:
 ````bash
 nano dashboard.html
 ````
-Cole o conteúdo abaixo, salve e saia (Ctrl+O, Enter, Ctrl+X):
-````html
-<!DOCTYPE html>
+<details> <summary>📄 Clique para ver o código HTML completo</summary>
+   <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
@@ -417,7 +416,8 @@ Cole o conteúdo abaixo, salve e saia (Ctrl+O, Enter, Ctrl+X):
   </script>
 </body>
 </html>
-````
+</details>
+
 🚀 4. Execute o bot (com dashboard)
 
 Agora inicie o bot normalmente:
