@@ -317,7 +317,7 @@ Assim, sempre que você logar no Linux, o bot iniciará sozinho em segundo plano
 Tutorial inspirado em uma jornada real de persistência e superação de bugs. Contribuições são bem‑vindas! ✨
 
 
-**## 🏎 Como criar e ativar uma Dashboard própria pro seu Bot! (atualização)**
+### 🏎 Como criar e ativar uma Dashboard própria pro seu Bot! (atualização) ###
 
 A partir de agora você pode **monitorar seu bot em tempo real** direto do navegador!  
 A dashboard mostra:
