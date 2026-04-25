@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Dashboard - Bedrock</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: #313244;
+      border-radius: 16px;
+      padding: 30px;
+      width: 100%;
+      max-width: 700px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .status-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: gray;
+      transition: background 0.3s;
+    }
+    .status-dot.online { background: #a6e3a1; }
+    .status-dot.offline { background: #f38ba8; }
+    .uptime {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+    #chatLog {
+      background: #181825;
+      border-radius: 8px;
+      padding: 15px;
+      height: 400px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.9rem;
+      border: 1px solid #45475a;
+    }
+    .chat-entry {
+      margin-bottom: 5px;
+      word-break: break-word;
+    }
+    .chat-entry .time {
+      color: #89b4fa;
+      margin-right: 8px;
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #585b70; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="status-row">
+      <div id="statusDot" class="status-dot offline"></div>
+      <h2 id="statusText">Bot Offline</h2>
+    </div>
+    <div class="uptime">
+      ⏱️ Online há: <strong id="uptimeDisplay">00:00:00</strong>
+    </div>
+    <h3>📜 Chat do Minecraft</h3>
+    <div id="chatLog">
+      <div class="chat-entry">Aguardando conexão...</div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const uptimeDisplay = document.getElementById('uptimeDisplay');
+    const chatLog = document.getElementById('chatLog');
+
+    function formatUptime(seconds) {
+      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function updateStatus(online) {
+      if (online) {
+        statusDot.className = 'status-dot online';
+        statusText.textContent = 'Bot Online';
+      } else {
+        statusDot.className = 'status-dot offline';
+        statusText.textContent = 'Bot Offline';
+      }
+    }
+
+    socket.on('status', (data) => {
+      updateStatus(data.online);
+      uptimeDisplay.textContent = formatUptime(data.uptime);
+    });
+
+    socket.on('uptime', (seconds) => {
+      uptimeDisplay.textContent = formatUptime(seconds);
+    });
+
+    socket.on('chatHistory', (history) => {
+      chatLog.innerHTML = '';
+      history.forEach(entry => addChatEntry(entry));
+    });
+
+    socket.on('chatMessage', (entry) => {
+      addChatEntry(entry);
+    });
+
+    function addChatEntry(entry) {
+      const div = document.createElement('div');
+      div.className = 'chat-entry';
+      div.innerHTML = `<span class="time">[${entry.time}]</span>${escapeHtml(entry.text)}`;
+      chatLog.appendChild(div);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    socket.on('disconnect', () => {
+      updateStatus(false);
+    });
+  </script>
+</body>
+</html>
