@@ -85,7 +85,8 @@ Crie o arquivo index.js:
 nano index.js
 ````
 <details>
-<sumary>Copie e cole o conteúdo completo abaixo (para colar no Termux use Ctrl+Shift+V):</sumary>
+<sumary>📄 Clique para ver o código JavaScript completo, coloque no index.js:</sumary>
+Copie e cole o conteúdo completo abaixo (para colar no Termux use Ctrl+Shift+V)
    
 ````bash
 const { createClient } = require('bedrock-protocol');
