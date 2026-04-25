@@ -226,3 +226,239 @@ Assim, sempre que você logar no Linux, o bot iniciará sozinho em segundo plano
 Tutorial inspirado em uma jornada real de persistência e superação de bugs. Contribuições são bem‑vindas! ✨
 
 ## 🏎 Como criar e ativar uma Dashboard própria pro seu Bot! (atualização)
+
+## 🏎 Como criar e ativar uma Dashboard própria pro seu Bot! (atualização)
+
+A partir de agora você pode **monitorar seu bot em tempo real** direto do navegador!  
+A dashboard mostra:
+
+- 🟢 **Status** – se o bot está online no servidor
+- ⏱️ **Uptime** – há quanto tempo ele está ligado
+- 💬 **Chat do Minecraft** – todas as mensagens do jogo, com nome dos jogadores
+
+Tudo funciona via Wi‑Fi, no celular ou em qualquer outro dispositivo da mesma rede.
+
+---
+
+### 📦 1. Instale as dependências da dashboard
+
+Entre na pasta do bot (se ainda não estiver lá):
+
+```bash
+cd /root/meu-bot
+````
+Instale os pacotes necessários:
+````bash
+npm install express socket.io
+````
+A instalação é rápida e não interfere nos módulos que você já tem.
+
+## 📄 2. Atualize o arquivo index.js
+
+Substitua todo o conteúdo do index.js pela versão mais recente do repositório (que já inclui o servidor web e a captura de chat com nicks).
+
+⚠️ Não esqueça de editar as configurações no topo do arquivo: SERVER_HOST, SERVER_PORT e USERNAME.
+
+Se preferir manter os movimentos do bot originais, o novo código preserva exatamente o mesmo comportamento de andar e pular.
+
+🎨 3. Crie o arquivo dashboard.html
+
+Ainda na pasta /root/meu-bot, crie o arquivo da interface:
+````bash
+nano dashboard.html
+````
+Cole o conteúdo abaixo, salve e saia (Ctrl+O, Enter, Ctrl+X):
+````html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Dashboard - Bedrock</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: #313244;
+      border-radius: 16px;
+      padding: 30px;
+      width: 100%;
+      max-width: 700px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .status-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: gray;
+      transition: background 0.3s;
+    }
+    .status-dot.online { background: #a6e3a1; }
+    .status-dot.offline { background: #f38ba8; }
+    .uptime {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+    #chatLog {
+      background: #181825;
+      border-radius: 8px;
+      padding: 15px;
+      height: 400px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.9rem;
+      border: 1px solid #45475a;
+    }
+    .chat-entry {
+      margin-bottom: 5px;
+      word-break: break-word;
+    }
+    .chat-entry .time {
+      color: #89b4fa;
+      margin-right: 8px;
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #585b70; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="status-row">
+      <div id="statusDot" class="status-dot offline"></div>
+      <h2 id="statusText">Bot Offline</h2>
+    </div>
+    <div class="uptime">
+      ⏱️ Online há: <strong id="uptimeDisplay">00:00:00</strong>
+    </div>
+    <h3>📜 Chat do Minecraft</h3>
+    <div id="chatLog">
+      <div class="chat-entry">Aguardando conexão...</div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const uptimeDisplay = document.getElementById('uptimeDisplay');
+    const chatLog = document.getElementById('chatLog');
+
+    function formatUptime(seconds) {
+      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function updateStatus(online) {
+      if (online) {
+        statusDot.className = 'status-dot online';
+        statusText.textContent = 'Bot Online';
+      } else {
+        statusDot.className = 'status-dot offline';
+        statusText.textContent = 'Bot Offline';
+      }
+    }
+
+    socket.on('status', (data) => {
+      updateStatus(data.online);
+      uptimeDisplay.textContent = formatUptime(data.uptime);
+    });
+
+    socket.on('uptime', (seconds) => {
+      uptimeDisplay.textContent = formatUptime(seconds);
+    });
+
+    socket.on('chatHistory', (history) => {
+      chatLog.innerHTML = '';
+      history.forEach(entry => addChatEntry(entry));
+    });
+
+    socket.on('chatMessage', (entry) => {
+      addChatEntry(entry);
+    });
+
+    function addChatEntry(entry) {
+      const div = document.createElement('div');
+      div.className = 'chat-entry';
+      div.innerHTML = `<span class="time">[${entry.time}]</span>${escapeHtml(entry.text)}`;
+      chatLog.appendChild(div);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    socket.on('disconnect', () => {
+      updateStatus(false);
+    });
+  </script>
+</body>
+</html>
+````
+🚀 4. Execute o bot (com dashboard)
+
+Agora inicie o bot normalmente:
+````bash
+node index.js
+````
+Se tudo estiver certo, você verá no terminal:
+````text
+📊 Dashboard online em http://0.0.0.0:3001
+   No celular, acesse http://localhost:3001
+   De outro dispositivo, use http://<IP_DO_CELULAR>:3001
+````
+🔁 Porta: Por padrão a dashboard usa a porta 3001 (para não brigar com a 3000, caso tenha algum processo antigo). Se precisar alterar, edite a variável DASHBOARD_PORT no início do index.js.
+
+## 🌐 5. Acesse a dashboard
+
+No próprio celular:
+Abra o navegador e digite:
+http://localhost:3001
+
+De outro PC/celular na mesma rede Wi-Fi:
+Descubra o IP do seu celular (vá em Configurações > Wi‑Fi, toque na rede conectada e veja o Endereço IP).
+Depois acesse:
+http://<IP_DO_CELULAR>:3001
+Exemplo: http://192.168.1.105:3001
+
+💡 Dicas importantes
+Porta em uso?
+Se aparecer o erro EADDRINUSE, mude a porta no código (ex: 3002) ou feche qualquer bot ainda rodando em segundo plano.
+
+Acesso externo (fora de casa)?
+Use um túnel como o ngrok. Rode em outro terminal:
+ngrok http 3001
+Ele vai gerar um link público temporário.
+
+Chat com nome de jogador?
+Já está funcionando! O painel mostra <NomeDoJogador> mensagem para cada fala.
+
+Quer iniciar a dashboard junto com o bot?
+Adicione no fim do ~/.bashrc:
+cd /root/meu-bot && node index.js &
+Assim o bot (e a dashboard) iniciam automaticamente ao abrir o Linux.
+
+Pronto! Agora você tem um painel de controle completo para seu bot de Minecraft Bedrock, acessível de qualquer lugar da sua rede. ✨
