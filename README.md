@@ -231,8 +231,6 @@ Tutorial inspirado em uma jornada real de persistência e superação de bugs. C
 
 ## 🏎 Como criar e ativar uma Dashboard própria pro seu Bot! (atualização)
 
-## 🏎 Como criar e ativar uma Dashboard própria pro seu Bot! (atualização)
-
 A partir de agora você pode **monitorar seu bot em tempo real** direto do navegador!  
 A dashboard mostra:
 
