@@ -1,6 +1,7 @@
 # 🤖 Bot 24h para Minecraft Bedrock no Android (Linux + Node.js)
 
 Tutorial completo para criar um bot que entra em servidores Minecraft Bedrock (Aternos, etc.), realiza movimentos realistas e fica online 24 horas — tudo rodando dentro de um **Ubuntu completo no seu celular Android**, sem precisar de root.
+observação: Não funciona em Servidores com Autenticação premium, ou seja, servidores oficiais ou que exijam uma conta original da Microsoft.
 
 ## 📋 Pré‑requisitos
 
