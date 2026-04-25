@@ -296,15 +296,15 @@ node index.js
 ````
 3. Se tudo der certo, você verá ✅ Bot entrou no servidor! e o bot começará a andar e pular.
 
-🔁 Reconexão automática
+* 🔁 Reconexão automática
 O bot já está programado para reconectar a cada 10 segundos se a conexão cair. Se o Server desligar por inatividade, você precisará ligá‑lo novamente.
 
-📱 Mantendo o bot ativo 24h
+* 📱 Mantendo o bot ativo 24h
 O Linux do Andronix continua rodando em segundo plano, mesmo com a tela do celular bloqueada.
 
-Importante: desative qualquer otimização de bateria para o Termux nas configurações do Android.
+* Importante: desative qualquer otimização de bateria para o Termux nas configurações do Android.
 
-Se o celular for reiniciado, abra o Termux, execute ./start-andronix.sh e depois cd /root/meu-bot && node index.js.
+* Se o celular for reiniciado, abra o Termux, execute ./start-andronix.sh e depois cd /root/meu-bot && node index.js.
 
 🔁 Dica extra: iniciar o bot automaticamente
 Adicione a linha abaixo ao final do arquivo ~/.bashrc:
