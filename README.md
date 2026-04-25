@@ -273,7 +273,8 @@ nano dashboard.html
 ````
 <details>
 <summary>📄 Clique para ver o código HTML completo, coloque no dashboard.html</summary>
-
+Copie e cole o conteúdo completo abaixo (para colar no Termux use Ctrl+Shift+V):
+   
 ```html
 <!DOCTYPE html>
 <html lang="pt-br">
