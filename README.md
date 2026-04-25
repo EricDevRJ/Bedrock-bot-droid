@@ -91,18 +91,86 @@ nano index.js
 
 ````javascript
 const { createClient } = require('bedrock-protocol');
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
 
-// ⚙️ CONFIGURAÇÕES – ALTERE AQUI
+// ⚙️ CONFIGURAÇÕES DO BOT – ALTERE AQUI
 const SERVER_HOST = 'SEU_IP_OU_DOMINIO';
-const SERVER_PORT = SUA_PORTA;
+const SERVER_PORT = SUA_PORTA;       // número, ex: 30374
 const USERNAME = 'NOME_DO_BOT';
 
+// ⚙️ CONFIGURAÇÃO DO DASHBOARD
+const DASHBOARD_PORT = 3001;         // Mudei para 3001 para evitar conflito com o processo antigo
+
 let client = null;
-const RECONNECT_DELAY = 10000; // 10 segundos entre tentativas
+const RECONNECT_DELAY = 10000;
 
 let fakeX = 0, fakeY = 64, fakeZ = 0, yaw = 0;
 let moveInterval = null, actionInterval = null;
 
+// ------ DASHBOARD SETUP ------
+const startTime = Date.now();
+const chatLog = [];
+const MAX_LOG_LINES = 200;
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+// Servir a página HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
+// API de status (opcional, para testes)
+app.get('/status', (req, res) => {
+    res.json({
+        online: client !== null,
+        uptime: Math.floor((Date.now() - startTime) / 1000)
+    });
+});
+
+io.on('connection', (socket) => {
+    // Envia estado atual
+    socket.emit('status', {
+        online: client !== null,
+        uptime: Math.floor((Date.now() - startTime) / 1000)
+    });
+    socket.emit('chatHistory', chatLog);
+
+    // Atualiza uptime a cada segundo
+    const uptimeInterval = setInterval(() => {
+        socket.emit('uptime', Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    socket.on('disconnect', () => {
+        clearInterval(uptimeInterval);
+    });
+});
+
+function addChatMessage(message) {
+    const entry = {
+        time: new Date().toLocaleTimeString('pt-BR', { hour12: false }),
+        text: message
+    };
+    chatLog.push(entry);
+    if (chatLog.length > MAX_LOG_LINES) chatLog.shift();
+    io.emit('chatMessage', entry);
+    // Também mostra no terminal
+    console.log(`[CHAT] ${message}`);
+}
+
+// Inicia o servidor do dashboard
+server.listen(DASHBOARD_PORT, '0.0.0.0', () => {
+    console.log(`📊 Dashboard online em http://0.0.0.0:${DASHBOARD_PORT}`);
+    console.log(`   No celular, acesse http://localhost:${DASHBOARD_PORT}`);
+    console.log(`   De outro dispositivo, use http://<IP_DO_CELULAR>:${DASHBOARD_PORT}`);
+});
+// ------ FIM DASHBOARD ------
+
+// Funções de movimento (mantidas do original)
 function stopMovement() {
     if (moveInterval) clearInterval(moveInterval);
     if (actionInterval) clearInterval(actionInterval);
@@ -115,13 +183,10 @@ function startMovementLoop() {
 
     moveInterval = setInterval(() => {
         if (!client) return;
-
-        // Anda em círculo devagar
         yaw += 0.05;
         const speed = 0.02;
         fakeX += Math.sin(yaw) * speed;
         fakeZ += Math.cos(yaw) * speed;
-
         client.write('move_player', {
             position: { x: fakeX, y: fakeY, z: fakeZ },
             rotation: { yaw: yaw, pitch: 0, headYaw: yaw },
@@ -129,16 +194,13 @@ function startMovementLoop() {
             onGround: true,
             tick: 0n
         });
-    }, 50); // 50ms = 20 atualizações por segundo
+    }, 50);
 
-    // Pulo aleatório a cada 2~4 segundos
     function scheduleJump() {
         if (!client) return;
         const delay = Math.random() * 2000 + 2000;
         actionInterval = setTimeout(() => {
             if (!client) return;
-
-            // Levanta voo
             client.write('move_player', {
                 position: { x: fakeX, y: fakeY + 0.5, z: fakeZ },
                 rotation: { yaw: yaw, pitch: 0, headYaw: yaw },
@@ -146,8 +208,6 @@ function startMovementLoop() {
                 onGround: false,
                 tick: 0n
             });
-
-            // Volta ao chão após 300ms
             setTimeout(() => {
                 if (!client) return;
                 client.write('move_player', {
@@ -158,34 +218,59 @@ function startMovementLoop() {
                     tick: 0n
                 });
             }, 300);
-
-            scheduleJump(); // agenda o próximo pulo
+            scheduleJump();
         }, delay);
     }
-
     scheduleJump();
     console.log('🤖 Bot andando e pulando (modo círculo).');
 }
 
+// Conexão com o servidor Minecraft
 function connect() {
     console.log(`🔌 Conectando a ${SERVER_HOST}:${SERVER_PORT} como ${USERNAME}...`);
     client = createClient({
         host: SERVER_HOST,
         port: SERVER_PORT,
         username: USERNAME,
-        offline: true          // servidor offline/cracked
+        offline: true
+    });
+
+    // Captura de mensagens (chat e sistema) – AGORA COM NICK!
+    client.on('text', (packet) => {
+        if (!packet.message) return;
+        // Remove códigos de formatação (§a, §l, etc.)
+        const cleanMessage = packet.message.replace(/§[0-9a-fk-or]/g, '').trim();
+        if (!cleanMessage) return;
+
+        let displayText;
+        if (packet.type === 'chat' && packet.sourceName) {
+            // Jogador falando: <Nome> mensagem
+            displayText = `<${packet.sourceName}> ${cleanMessage}`;
+        } else if (packet.type === 'chat') {
+            // Chat sem sourceName (muito raro)
+            displayText = cleanMessage;
+        } else {
+            // Sistema, translation (entrou/saiu, conquistas...)
+            const prefix = packet.sourceName ? `[${packet.sourceName}]` : '[Sistema]';
+            displayText = `${prefix} ${cleanMessage}`;
+        }
+        addChatMessage(displayText);
     });
 
     client.on('spawn', () => {
         console.log('✅ Bot entrou no servidor!');
         fakeX = 0; fakeY = 64; fakeZ = 0; yaw = 0;
         startMovementLoop();
+        addChatMessage('[Bot] Entrou no servidor');
     });
 
     client.on('disconnect', (reason) => {
         console.log(`❌ Desconectado: ${reason}`);
+        addChatMessage(`[Bot] Desconectado: ${reason}`);
         client = null;
         stopMovement();
+        // Atualiza status no dashboard
+        io.emit('status', { online: false, uptime: Math.floor((Date.now() - startTime) / 1000) });
         setTimeout(connect, RECONNECT_DELAY);
     });
 
