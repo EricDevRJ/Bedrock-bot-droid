@@ -84,7 +84,9 @@ Crie o arquivo index.js:
 ````bash
 nano index.js
 ````
-Copie e cole o conteúdo completo abaixo (para colar no Termux use Ctrl+Shift+V):
+<details>
+<sumary>Copie e cole o conteúdo completo abaixo (para colar no Termux use Ctrl+Shift+V):</sumary>
+   
 ````bash
 const { createClient } = require('bedrock-protocol');
 
@@ -192,6 +194,8 @@ function connect() {
 
 connect();
 ````
+</details>
+
 Salve e saia (Ctrl+O, Enter, Ctrl+X).
 
 ## 🚀 Etapa 6 – Executar o bot e mantê‑lo online
