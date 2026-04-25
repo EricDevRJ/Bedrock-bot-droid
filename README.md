@@ -269,7 +269,8 @@ nano dashboard.html
 ````
 <details>
 <summary>📄 Clique para ver o código HTML completo, coloque no dashboard.html</summary>
-```bash
+
+```html
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
