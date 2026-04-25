@@ -86,10 +86,10 @@ nano index.js
 ````
 
 <details>
-<sumary>📄 Clique para ver o código JavaScript completo, coloque no index.js</sumary>
+<summary>📄 Clique para ver o código JavaScript completo, coloque no index.js</summary>
    Copie e cole o conteúdo completo abaixo (para colar no Termux use Ctrl+Shift+V)
 
-````index.js
+````javascript
 const { createClient } = require('bedrock-protocol');
 
 // ⚙️ CONFIGURAÇÕES – ALTERE AQUI
