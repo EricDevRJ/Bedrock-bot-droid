@@ -269,7 +269,7 @@ nano dashboard.html
 ````
 <details>
 <summary>📄 Clique para ver o código HTML completo, coloque no dashboard.html</summary>
-```html
+```bash
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -419,7 +419,6 @@ nano dashboard.html
 </body>
 </html>
 ```
-
 </details>
 
 🚀 4. Execute o bot (com dashboard)
